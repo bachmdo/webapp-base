@@ -8,21 +8,31 @@ on:
 
 jobs:
   build:
-
+    name: build
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - uses: actions/checkout@master
+      - uses: actions/setup-node@master
+        with:
+          node-version: '12'
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
 
-    - name: Set up Node
-      uses: actions/setup-node@v1
+  coverage:
+    needs: [ build ]
+    name: coverage
+    runs-on: ubuntu-latest
 
-    - name: Install dependencies
-      run: npm ci
-
-    - name: Run the tests
-      run: npm test
-
-    - name: Build
-      run: npm run build
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-node@master
+        with:
+          node-version: '12'
+      - run: npm ci
+      - uses: paambaati/codeclimate-action@v2.6.0
+        env:
+          CC_TEST_REPORTER_ID: fd0a14851b075fb42fd5febce23394dedcefef0c4f5d979d123f3e9a3a7d449c
+        with:
+          coverageCommand: npm test -- --coverage --watchAll=false
